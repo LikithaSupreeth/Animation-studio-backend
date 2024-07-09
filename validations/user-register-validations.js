@@ -21,17 +21,17 @@ const userRegisterValidationSchema = {
       errorMessage: "Email should be a valid format",
     },
     custom: {
-      options: async function(value){
-          const user = await User.findOne({ email: value })
-          if(user) {
-              throw new Error('email already taken')
-          } else {
-              return true 
-          }
-      }
-  },
-  trim: true,
-  normalizeEmail: true 
+      options: async function (value) {
+        const user = await User.findOne({ email: value });
+        if (user) {
+          throw new Error("email already taken");
+        } else {
+          return true;
+        }
+      },
+    },
+    trim: true,
+    normalizeEmail: true,
   },
   password: {
     exists: {
@@ -82,9 +82,9 @@ const userUpdateValidations = {
     isEmail: {
       errorMessage: "Email should be a valid format",
     },
-   
-  trim: true,
-  normalizeEmail: true 
+
+    trim: true,
+    normalizeEmail: true,
   },
   password: {
     exists: {
@@ -115,4 +115,11 @@ const userUpdateValidations = {
   },
 };
 
-module.exports = {userRegisterValidationSchema,userUpdateValidations};
+module.exports = { userRegisterValidationSchema, userUpdateValidations };
+
+// git init
+// git add README.md
+// git commit -m "first commit"
+// git branch -M main
+// git remote add origin https://github.com/LikithaSupreeth/Animation-studio.git
+// git push -u origin main
