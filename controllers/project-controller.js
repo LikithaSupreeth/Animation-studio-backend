@@ -176,16 +176,16 @@ projectController.updateProject = async (req, res) => {
 };
 
 // Delete a project
-projectController.deleteProject = async (req, res) => {
-  try {
-    const project = await Project.findByIdAndDelete(req.params.id);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-    res.json({ message: 'Project deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// projectController.deleteProject = async (req, res) => {
+//   try {
+//     const project = await Project.findByIdAndDelete(req.params.id);
+//     if (!project) {
+//       return res.status(404).json({ message: 'Project not found' });
+//     }
+//     res.json({ message: 'Project deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 module.exports = projectController;
