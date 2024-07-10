@@ -19,7 +19,7 @@ usersController.register = async (req, res) => {
     } else {
         return res.status(400).json({ errors: 'User not found' })
     }
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: 'User registered successfully',user });
 
   } catch (error) {
     console.log(error)
@@ -49,17 +49,12 @@ usersController.login = async (req, res) => {
 // Get user profile
 usersController.getProfile = async (req, res) => {
   try {
-    // console.log(req.user.userId)
+    
     //console.log(`User ID from token: ${req.user.id}`); // Debug log
-
-
     const user = await User.findById(req.user.userId).select('-password');
-    //console.log(user)
-
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    //console.log(user)
      return res.json(user);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -102,12 +97,12 @@ usersController.getAllUsers = async (req, res) => {
 usersController.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate('projectHistory ')
-      .populate({
-        path: 'paymentHistory',
-        select: 'status'
-      })
-      .select('-password');
+     .select('-password')
+      // .populate('projectHistory ')
+      // .populate({
+      //   path: 'paymentHistory',
+      //   select: 'status'
+      // })
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }

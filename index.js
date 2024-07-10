@@ -61,9 +61,9 @@ app.put('/project/update/:id', authenticateUser, authorizeUser(['Admin', 'Projec
 app.delete('/project/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), projectController.deleteProject);
 
 //task crud operations
-app.post('/task/create',authenticateUser,authorizeUser(['Admin','Project manager']),checkSchema(taskValidationSchema),handleValidation,taskController.createTask)
+app.post('/task/create',authenticateUser,authorizeUser(['Admin','Project Manager']),checkSchema(taskValidationSchema),handleValidation,taskController.createTask)
 app.get('/task/gettaskbyid/:id', authenticateUser,authorizeUser(['Admin', 'Project Manager','Animator']), taskController.getTask);
-app.get('/task/getalltasks',authenticateUser,authorizeUser(['Admin', 'Project Manager','Animator']))
+app.get('/task/getalltasks',authenticateUser,authorizeUser(['Admin', 'Project Manager','Animator']),taskController.getAllTasks)
 app.put('/task/update/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(taskValidationSchema), handleValidation, taskController.updateTask);
 app.delete('/task/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), taskController.deleteTask);
 

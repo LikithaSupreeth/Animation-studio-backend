@@ -32,7 +32,9 @@ projectController.createProject = async (req, res) => {
       // Update payment history for the user who created the project
       await User.findByIdAndUpdate(
         req.user.userId,
-        { $push: { paymentHistory: payment._id } },
+        { $push: { paymentHistory: payment._id, projectHistory: project._id } },
+
+        // { $push: { paymentHistory: payment._id } },
         { new: true }
       );
 
@@ -41,7 +43,7 @@ projectController.createProject = async (req, res) => {
      for (const userId of assignedTeamMembers) {
       await User.findByIdAndUpdate(
         userId,
-        { $push: { projectHistory: project._id } },
+        { $addToSet: { projectHistory: project._id } },
         { new: true }
       );
     }
@@ -49,16 +51,19 @@ projectController.createProject = async (req, res) => {
      // Update project history for the user who created the project
      await User.findByIdAndUpdate(
       req.user.userId,
-      { $push: { projectHistory: project._id } },
+      { $addToSet: { projectHistory: project._id } },
       { new: true }
     );
    
     // Update project history for the client
-    await Client.findByIdAndUpdate(
+    
+    if(client){
+      await Client.findByIdAndUpdate(
       client,
-      { $push: { projectHistory: project._id } },
+      { $addToSet: { projectHistory: project._id } },
       { new: true }
     )
+  }
 
     res.status(201).json(project);
   } catch (error) {
@@ -187,5 +192,92 @@ projectController.updateProject = async (req, res) => {
 //     res.status(500).json({ error: error.message });
 //   }
 // };
+
+// projectController.deleteProject = async (req, res) => {
+//   try {
+//     const project = await Project.findById(req.params.id);
+//     if (!project) {
+//       return res.status(404).json({ message: 'Project not found' });
+//     }
+
+//     // Remove the project reference from users' projectHistory
+//     const assignedTeamMembers = project.assignedTeamMembers;
+//     const client = project.client;
+//     const createdBy = project.createdBy;
+
+//     for (const userId of assignedTeamMembers) {
+//       await User.findByIdAndUpdate(
+//         userId,
+//         { $pull: { projectHistory: project._id } },
+//         { new: true }
+//       );
+//     }
+
+//     await User.findByIdAndUpdate(
+//       createdBy,
+//       { $pull: { projectHistory: project._id } },
+//       { new: true }
+//     );
+
+//     if (client) {
+//       await Client.findByIdAndUpdate(
+//         client,
+//         { $pull: { projectHistory: project._id } },
+//         { new: true }
+//       );
+//     }
+
+//     // Finally, delete the project
+//     await Project.findByIdAndDelete(req.params.id);
+
+//     res.json({ message: 'Project deleted successfully' , project});
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+projectController.deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const { assignedTeamMembers, client, _id: projectId } = project;
+
+    // Remove the project reference from each assigned user's projectHistory array
+    for (const userId of assignedTeamMembers) {
+      await User.findByIdAndUpdate(
+        userId,
+        { $pull: { projectHistory: projectId } },
+        { new: true }
+      );
+    }
+
+    // Remove the project reference from the client's projectHistory array
+    await Client.findByIdAndUpdate(
+      client,
+      { $pull: { projectHistory: projectId } },
+      { new: true }
+    );
+
+    // Remove the project reference from the user who created it
+    await User.findByIdAndUpdate(
+      project.createdBy,
+      { $pull: { projectHistory: projectId } },
+      { new: true }
+    );
+
+    // Delete associated payments
+    await Payment.deleteMany({ project: projectId });
+
+    // Finally, delete the project
+    await Project.findByIdAndDelete(projectId);
+
+    res.json({ message: 'Project deleted successfully', project });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = projectController;
