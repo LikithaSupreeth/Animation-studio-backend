@@ -5,10 +5,13 @@ const {sendRegisterEmail} = require('../utility/nodemailer')
 
 const usersController ={}
 
-//Register a new user
+//Register a new user by admin 
 usersController.register = async (req, res) => {
   const { name, email, password, role } = req.body;
   try {
+    if (!['Project Manager', 'Animator'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword, role });
     await user.save();
@@ -23,6 +26,26 @@ usersController.register = async (req, res) => {
 
   } catch (error) {
     console.log(error)
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Register a new client
+usersController.registerClient = async (req, res) => {
+  const { name, email, password, contactInformation } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'Client',
+      contactInformation,
+    });
+    await user.save();
+    sendRegisterEmail(user.email, user.name);
+    res.status(201).json({ message: 'Client registered successfully', user });
+  } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };

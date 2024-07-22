@@ -1,10 +1,9 @@
 const Task = require('../models/task-model');
 const User = require('../models/user-model');
 const Project = require('../models/project-model')
+const {sendTaskCompletionEmail} = require('../utility/nodemailer')
 
 const taskController = {};
-
-// Create a new task
 
 // Create a new task
 taskController.createTask = async (req, res) => {
@@ -52,9 +51,6 @@ taskController.createTask = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
-
 
 // Get a single task by ID
 taskController.getTask = async (req, res) => {
@@ -105,6 +101,15 @@ taskController.updateTask = async (req, res) => {
   if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
+    
+    // If the task is completed, notify the project manager
+    if (updates.status === 'Completed') {
+      const projectManager = await User.findById(task.project.createdBy);
+      if (projectManager) {
+        sendTaskCompletionEmail(projectManager.email, 'Task Completed', `The task "${task.name}" has been completed by the animator. Please review and approve the task.`);
+      }
+    }
+
     res.json(task);
   } catch (error) {
     res.status(500).json({ error: error.message });

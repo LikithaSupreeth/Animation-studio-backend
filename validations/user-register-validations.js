@@ -54,9 +54,9 @@ const userRegisterValidationSchema = {
       errorMessage: "Role cannot be empty",
     },
     isIn: {
-      options: [["Admin", "Project Manager", "Animator", "Client"]],
+      options: [[ "Project Manager", "Animator"]],
       errorMessage:
-        "Role should be one of Admin, Project Manager, Animator, or Client",
+        "Role should be one of  Project Manager, Animator",
     },
     trim: true,
   },
@@ -107,7 +107,7 @@ const userUpdateValidations = {
       errorMessage: "Role cannot be empty",
     },
     isIn: {
-      options: [["Admin", "Project Manager", "Animator", "Client"]],
+      options: [[ "Project Manager", "Animator" ]],
       errorMessage:
         "Role should be one of Admin, Project Manager, Animator, or Client",
     },
@@ -115,7 +115,52 @@ const userUpdateValidations = {
   },
 };
 
-module.exports = { userRegisterValidationSchema, userUpdateValidations };
+const clientRegisterValidationSchema = {
+  name: {
+    exists: {
+      errorMessage: 'Client name is required',
+    },
+    notEmpty: {
+      errorMessage: 'Client name cannot be empty',
+    },
+    trim: true,
+  },
+  email: {
+    exists: {
+      errorMessage: 'Email is required',
+    },
+    notEmpty: {
+      errorMessage: 'Email cannot be empty',
+    },
+    isEmail: {
+      errorMessage: 'Invalid email format',
+    },
+    trim: true,
+  },
+  password: {
+    exists: {
+      errorMessage: 'Password is required',
+    },
+    notEmpty: {
+      errorMessage: 'Password cannot be empty',
+    },
+    isLength: {
+      options: { min: 6 },
+      errorMessage: 'Password must be at least 6 characters long',
+    },
+  },
+  contactInformation: {
+    exists: {
+      errorMessage: 'Contact information is required',
+    },
+    notEmpty: {
+      errorMessage: 'Contact information cannot be empty',
+    },
+    trim: true,
+  },
+};
+
+module.exports = { userRegisterValidationSchema, userUpdateValidations,clientRegisterValidationSchema };
 
 // git init
 // git add README.md

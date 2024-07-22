@@ -2,6 +2,7 @@ const Project = require('../models/project-model');
 const User = require('../models/user-model')
 const Client = require('../models/client-model')
 const Payment = require('../models/payment-model')
+const {sendProjectCompletionEmail} = require('../utility/nodemailer')
 
 const projectController = {};
 
@@ -72,19 +73,6 @@ projectController.createProject = async (req, res) => {
 };
 
 // Get a single project by ID
-// projectController.getProject = async (req, res) => {
-//   try {
-//     const project = await Project.findById(req.params.id)
-//       .populate('assignedTeamMembers tasks client createdBy');
-//     if (!project) {
-//       return res.status(404).json({ message: 'Project not found' });
-//     }
-//     res.json(project);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
 projectController.getProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
@@ -99,18 +87,8 @@ projectController.getProject = async (req, res) => {
       path: 'createdBy',
       select: 'name email role projectHistory paymentHistory createdAt updatedAt',
       populate: { path: 'paymentHistory', select: 'status' }
+    })
 
-      // //.populate('assignedTeamMembers', 'name email role projectHistory paymentHistory createdAt updatedAt')
-      // .populate('tasks')
-      // .populate('client')
-      // //.populate('createdBy','name role paymentHistory')
-      // .populate({
-      //   path: 'createdBy',
-      //   select: 'name email role projectHistory paymentHistory createdAt updatedAt',
-      //   populate: { path: 'paymentHistory', select: 'status' }
-      });
-
-      //.populate('createdBy', 'name email role projectHistory paymentHistory createdAt updatedAt');
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
@@ -120,16 +98,7 @@ projectController.getProject = async (req, res) => {
   }
 };
 
-//get all projects 
-// projectController.getAllProjects = async (req, res) => {
-//   try {
-//     const projects = await Project.find()
-//       .populate('assignedTeamMembers tasks client createdBy').select(-);
-//     res.json(projects);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
+
 
 projectController.getAllProjects = async (req, res) => {
   try {
@@ -180,62 +149,7 @@ projectController.updateProject = async (req, res) => {
   }
 };
 
-// Delete a project
-// projectController.deleteProject = async (req, res) => {
-//   try {
-//     const project = await Project.findByIdAndDelete(req.params.id);
-//     if (!project) {
-//       return res.status(404).json({ message: 'Project not found' });
-//     }
-//     res.json({ message: 'Project deleted successfully' });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
-// projectController.deleteProject = async (req, res) => {
-//   try {
-//     const project = await Project.findById(req.params.id);
-//     if (!project) {
-//       return res.status(404).json({ message: 'Project not found' });
-//     }
-
-//     // Remove the project reference from users' projectHistory
-//     const assignedTeamMembers = project.assignedTeamMembers;
-//     const client = project.client;
-//     const createdBy = project.createdBy;
-
-//     for (const userId of assignedTeamMembers) {
-//       await User.findByIdAndUpdate(
-//         userId,
-//         { $pull: { projectHistory: project._id } },
-//         { new: true }
-//       );
-//     }
-
-//     await User.findByIdAndUpdate(
-//       createdBy,
-//       { $pull: { projectHistory: project._id } },
-//       { new: true }
-//     );
-
-//     if (client) {
-//       await Client.findByIdAndUpdate(
-//         client,
-//         { $pull: { projectHistory: project._id } },
-//         { new: true }
-//       );
-//     }
-
-//     // Finally, delete the project
-//     await Project.findByIdAndDelete(req.params.id);
-
-//     res.json({ message: 'Project deleted successfully' , project});
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
+// delete project
 projectController.deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -275,6 +189,39 @@ projectController.deleteProject = async (req, res) => {
     await Project.findByIdAndDelete(projectId);
 
     res.json({ message: 'Project deleted successfully', project });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// Approve task and mark project as completed
+projectController.approveTask = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    // Update task status
+    task.status = 'Approved';
+    await task.save();
+
+    // Check if all tasks in the project are completed
+    const project = await Project.findById(task.project);
+    const allTasks = await Task.find({ project: task.project });
+    const allTasksCompleted = allTasks.every(tasks => tasks.status === 'Approved');
+
+    if (allTasksCompleted) {
+      project.status = 'Completed';
+      await project.save();
+
+      // Notify the client about project completion
+      const client = await Client.findById(project.client);
+      sendProjectCompletionEmail(client.email, 'Project Completed', `Your project "${project.name}" has been completed. Please make the payment and provide your feedback.`);
+    }
+
+    res.json({ message: 'Task approved and project status updated if all tasks are completed', project });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
