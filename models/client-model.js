@@ -49,6 +49,9 @@ const User = require("./user-model");
 
 const clientSchema = new Schema(
   {
+    // user: { type: Schema.Types.ObjectId, ref: 'User' },
+    _id: { type: Schema.Types.ObjectId, ref: 'User' },
+
     name: { type: String },
     email: { type: String },
     contactInformation: { type: String },

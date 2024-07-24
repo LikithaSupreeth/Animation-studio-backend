@@ -10,6 +10,28 @@ const projectController = {};
 projectController.createProject = async (req, res) => {
   const { name, description, deadline, assignedTeamMembers, tasks, client } = req.body;
   try {
+    // Validate client
+    const clientExists = await Client.findById(client);
+    if (!clientExists) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    // Validate assigned team members
+    for (const memberId of assignedTeamMembers) {
+      const memberExists = await User.findById(memberId);
+      if (!memberExists) {
+        return res.status(404).json({ message: `Assigned team member with ID ${memberId} not found` });
+      }
+    }
+
+    // Validate tasks
+    for (const taskId of tasks) {
+      const taskExists = await Task.findById(taskId);
+      if (!taskExists) {
+        return res.status(404).json({ message: `Task with ID ${taskId} not found` });
+      }
+    }
+
     const project = new Project({
       name,
       description,
@@ -127,6 +149,34 @@ projectController.getAllProjects = async (req, res) => {
 projectController.updateProject = async (req, res) => {
   const updates = req.body;
   try {
+
+    const { client, createdBy, assignedTeamMembers, tasks } = updates;
+
+    if (client) {
+      const clientExists = await Client.findById(client);
+      if (!clientExists) {
+        return res.status(404).json({ message: 'Client not found' });
+      }
+    }
+    
+    if (assignedTeamMembers) {
+      for (const memberId of assignedTeamMembers) {
+        const memberExists = await User.findById(memberId);
+        if (!memberExists) {
+          return res.status(404).json({ message: `Assigned team member with ID ${memberId} not found` });
+        }
+      }
+    }
+
+    if (tasks) {
+      for (const taskId of tasks) {
+        const taskExists = await Task.findById(taskId);
+        if (!taskExists) {
+          return res.status(404).json({ message: `Task with ID ${taskId} not found` });
+        }
+      }
+    }
+
     const project = await Project.findByIdAndUpdate(req.params.id, updates, { new: true })
       // //.populate('assignedTeamMembers tasks client createdBy')
       // .populate('tasks')

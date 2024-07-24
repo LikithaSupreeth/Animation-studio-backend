@@ -50,6 +50,7 @@ const projectSchema = new Schema(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      default: null
       
     },
     

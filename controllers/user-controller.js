@@ -1,4 +1,5 @@
 const User = require('../models/user-model')
+const Client = require('../models/client-model')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {sendRegisterEmail} = require('../utility/nodemailer')
@@ -43,8 +44,23 @@ usersController.registerClient = async (req, res) => {
       contactInformation,
     });
     await user.save();
+
+        // Insert the new client into the clients collection
+        const clientDoc = {
+         _id: user._id,
+          name: user.name,
+          email: user.email,
+          contactInformation: user.contactInformation || '',
+          projectHistory: [],
+          paymentHistory: [],
+          feedback: [],
+        };
+        const client = new Client(clientDoc);
+        await client.save();
+
+
     sendRegisterEmail(user.email, user.name);
-    res.status(201).json({ message: 'Client registered successfully', user });
+    res.status(201).json({ message: 'Client registered successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

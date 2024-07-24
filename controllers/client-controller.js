@@ -188,6 +188,9 @@ const clientController = {};
 clientController.createClient = async (req, res) => {
   const { name, email, contactInformation } = req.body;
   try {
+    if (req.user.role !== 'Client') {
+      return res.status(403).json({ message: 'You are not authorized to create a client.' });
+    }
     const client = new Client({
       name,
       email,
@@ -204,10 +207,12 @@ clientController.createClient = async (req, res) => {
 // Get a single client by ID
 clientController.getClient = async (req, res) => {
   try {
+    // if (req.user.role !== 'Client' || req.user.userId !== req.params.id) {
+    //   return res.status(403).json({ message: 'You are not authorized to view this information.' });
+    // }
     const client = await Client.findById(req.params.id)
       .populate('paymentHistory')
       .populate('projectHistory')
-      .populate('createdBy');
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }
@@ -221,10 +226,14 @@ clientController.getClient = async (req, res) => {
 clientController.updateClient = async (req, res) => {
   const updates = req.body;
   try {
+
+     if (req.user.role !== 'Client' || req.user.userId !== req.params.id) {
+      return res.status(403).json({ message: 'You are not authorized to view this information.' });
+    }
+    
     const client = await Client.findByIdAndUpdate(req.params.id, updates, { new: true })
       .populate('paymentHistory')
       .populate('projectHistory')
-      .populate('createdBy');
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }

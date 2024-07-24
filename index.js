@@ -50,7 +50,7 @@ app.post('/users/register-client',checkSchema(clientRegisterValidationSchema),ha
 app.post('/users/login',checkSchema(userLoginValidationSchema),handleValidation,usersController.login)
 app.get('/users/getuser',authenticateUser,usersController.getProfile)
 app.get('/users/getbyid/:id',authenticateUser,authorizeUser(['Admin']),usersController.getUserById)
-app.get('/users/getallusers',authenticateUser,authorizeUser(['Admin']),usersController.getAllUsers)
+app.get('/users/getallusers',authenticateUser,authorizeUser(['Admin','Project Manager'  ]),usersController.getAllUsers)
 app.put('/users/update',authenticateUser,checkSchema(userUpdateValidations),usersController.updateProfile)
 app.delete('/users/:id', authenticateUser, authorizeUser(['Admin']), usersController.deleteUser);
 
@@ -70,11 +70,13 @@ app.put('/task/update/:id', authenticateUser, authorizeUser(['Admin', 'Project M
 app.delete('/task/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), taskController.deleteTask);
 
 //client crud operations
-app.post('/client/create', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(clientValidationSchema), handleValidation, clientController.createClient);
-app.get('/client/getclient/:id', authenticateUser, clientController.getClient);
-app.put('/client/update/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(clientValidationSchema), handleValidation, clientController.updateClient);
+app.get('/client/get-client/:id', authenticateUser,authorizeUser(['Admin', 'Project Manager']), clientController.getClient);
+app.put('/client/update/:id', authenticateUser, checkSchema(clientValidationSchema), handleValidation, clientController.updateClient);
 app.delete('/client/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), clientController.deleteClient);
-
+app.post('/client/feedback', authenticateUser, authorizeUser(['Client']), clientController.addFeedback);
+app.post('/clients/:id/make-payment', authenticateUser, authorizeUser(['Client']), clientController.makePayment);
+app.post('/clients/:id/complete-payment', authenticateUser, authorizeUser(['Client']), clientController.completePayment);
+app.get('/clients/:id/projects', authenticateUser, authorizeUser(['Client']), clientController.getProjectsByClient);
 
 //file crud operations 
 app.post('/file/create', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(fileValidationSchema), handleValidation, fileController.uploadFile);

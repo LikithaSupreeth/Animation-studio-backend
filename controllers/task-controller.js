@@ -15,6 +15,13 @@ taskController.createTask = async (req, res) => {
       return res.status(400).json({ error: 'Assigned user must be an Animator' });
     }
 
+     // Check if the project exists
+     const projectExists = await Project.findById(project);
+     if (!projectExists) {
+       return res.status(400).json({ error: 'Invalid project ID' });
+     }
+ 
+
     const task = new Task({
       name,
       description,
@@ -87,13 +94,21 @@ taskController.getAllTasks = async (req, res) => {
 taskController.updateTask = async (req, res) => {
   const updates = req.body;
   try {
+
+    if (updates.assignedAnimator) {
+      const animator = await User.findById(updates.assignedAnimator);
+      if (!animator || animator.role !== 'Animator') {
+        return res.status(400).json({ error: 'Assigned user must be an Animator' });
+      }
+    }
+
     if (updates.project) {
-      // Checking if the new project ID is valid
       const projectExists = await Project.findById(updates.project);
       if (!projectExists) {
         return res.status(400).json({ error: 'Invalid project ID' });
       }
     }
+
     const task = await Task.findByIdAndUpdate(req.params.id, updates, { new: true })
     .populate('assignedAnimator', 'name email role projectHistory')
     .populate('project', 'name description deadline status assignedTeamMembers tasks client createdBy')

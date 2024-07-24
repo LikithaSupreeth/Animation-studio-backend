@@ -135,6 +135,16 @@ const clientRegisterValidationSchema = {
     isEmail: {
       errorMessage: 'Invalid email format',
     },
+    custom: {
+      options: async function (value) {
+        const user = await User.findOne({ email: value });
+        if (user) {
+          throw new Error("email already taken");
+        } else {
+          return true;
+        }
+      },
+    },
     trim: true,
   },
   password: {

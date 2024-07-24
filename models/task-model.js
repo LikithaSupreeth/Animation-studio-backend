@@ -28,6 +28,7 @@ const taskSchema = new Schema(
     assignedAnimator: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      default: null
     },
     project: {
       type: Schema.Types.ObjectId,
