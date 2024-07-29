@@ -2,6 +2,7 @@ const Project = require('../models/project-model');
 const User = require('../models/user-model')
 const Client = require('../models/client-model')
 const Payment = require('../models/payment-model')
+const Task = require('../models/task-model')
 const {sendProjectCompletionEmail} = require('../utility/nodemailer')
 
 const projectController = {};
@@ -43,6 +44,20 @@ projectController.createProject = async (req, res) => {
       createdBy: req.user.userId,
     })
       await project.save();
+
+     // Update the client's project history
+    clientExists.projectHistory.push(project._id);
+    await clientExists.save();
+
+    // Update project history for each assigned user
+    for (const userId of assignedTeamMembers) {
+      await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { projectHistory: project._id } },
+        { new: true }
+      );
+    }
+
 
       //  pending payment for the project
     const payment = new Payment({
@@ -237,6 +252,8 @@ projectController.deleteProject = async (req, res) => {
 
     // Finally, delete the project
     await Project.findByIdAndDelete(projectId);
+
+    await Task.deleteMany({ project: projectId });
 
     res.json({ message: 'Project deleted successfully', project });
   } catch (error) {

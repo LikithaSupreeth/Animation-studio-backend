@@ -35,6 +35,10 @@ const paymentSchema = new Schema(
       type: String,
      
     },
+    stripePaymentIntentId: { 
+      type: String
+    },
+
     project: {
       type: Schema.Types.ObjectId,
       ref: "Project",

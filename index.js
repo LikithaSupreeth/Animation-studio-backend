@@ -73,9 +73,9 @@ app.delete('/task/delete/:id', authenticateUser, authorizeUser(['Admin', 'Projec
 app.get('/client/get-client/:id', authenticateUser,authorizeUser(['Admin', 'Project Manager']), clientController.getClient);
 app.put('/client/update/:id', authenticateUser, checkSchema(clientValidationSchema), handleValidation, clientController.updateClient);
 app.delete('/client/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), clientController.deleteClient);
-app.post('/client/feedback', authenticateUser, authorizeUser(['Client']), clientController.addFeedback);
+app.post('/client/:id/feedback', authenticateUser, authorizeUser(['Client']), clientController.addFeedback);
 app.post('/clients/:id/make-payment', authenticateUser, authorizeUser(['Client']), clientController.makePayment);
-app.post('/clients/:id/complete-payment', authenticateUser, authorizeUser(['Client']), clientController.completePayment);
+app.post('/clients/complete-payment', authenticateUser, authorizeUser(['Client']), clientController.completePayment);
 app.get('/clients/:id/projects', authenticateUser, authorizeUser(['Client']), clientController.getProjectsByClient);
 
 //file crud operations 

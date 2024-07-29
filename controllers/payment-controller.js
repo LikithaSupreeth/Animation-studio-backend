@@ -153,6 +153,12 @@ const paymentController = {};
 paymentController.createPaymentRequest = async (req, res) => {
   const { client, amount, project } = req.body;
   try {
+
+     const clientExists = await Client.findById(client);
+     if (!clientExists) {
+       return res.status(404).json({ message: 'Client not found' });
+     }
+
     const payment = new Payment({
       client,
       amount,
@@ -161,6 +167,9 @@ paymentController.createPaymentRequest = async (req, res) => {
       project,
     });
     await payment.save();
+
+    clientExists.paymentHistory.push(payment._id);
+    await clientExists.save();
 
     res.status(201).json(payment);
   } catch (error) {

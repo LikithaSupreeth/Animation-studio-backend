@@ -47,6 +47,11 @@ const Payment = require("./payment-model");
 const Task = require("./task-model");
 const User = require("./user-model");
 
+const feedbackSchema = new Schema({
+  project: { type: Schema.Types.ObjectId, ref: "Project" },
+  feedback: { type: String }
+});
+
 const clientSchema = new Schema(
   {
     // user: { type: Schema.Types.ObjectId, ref: 'User' },
@@ -57,7 +62,7 @@ const clientSchema = new Schema(
     contactInformation: { type: String },
     projectHistory: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
     paymentHistory: [{ type: Schema.Types.ObjectId, ref: 'Payment' }],
-    feedback: [{ type: Schema.Types.ObjectId, ref: 'Project' }],
+    feedback: [feedbackSchema],
   },
   { timestamps: true }
 );
