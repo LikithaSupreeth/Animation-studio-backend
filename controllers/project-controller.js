@@ -4,14 +4,20 @@ const Client = require('../models/client-model')
 const Payment = require('../models/payment-model')
 const Task = require('../models/task-model')
 const {sendProjectCompletionEmail} = require('../utility/nodemailer')
-const {getUsersByRole} = require('./user-controller')
+const {getUsersByRole} = require('./user-controller');
+const usersController = require('./user-controller');
 
 const projectController = {};
 
 // Create a new project
 projectController.createProject = async (req, res) => {
-  const { name, description, deadline, assignedTeamMembers, tasks, client } = req.body;
+  const { name, description, deadline, assignedTeamMembers, tasks, client, status } = req.body;
   try {
+
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
     // Validate client
     const clientExists = await Client.findById(client);
     if (!clientExists) {
@@ -20,23 +26,16 @@ projectController.createProject = async (req, res) => {
 
      // Validate assigned team members
      const validRoles = ['Animator', 'Project Manager'];
-     const validTeamMembers = await getUsersByRole({ roles: validRoles });
- 
+
+     const validTeamMembers = await usersController.getUsersByRole({  roles: validRoles.join(',')  })
+      
      const validMemberIds = validTeamMembers.map(user => user._id.toString());
- 
+
      for (const memberId of assignedTeamMembers) {
        if (!validMemberIds.includes(memberId)) {
          return res.status(404).json({ message: `Assigned team member with ID ${memberId} is not an Animator or Project Manager` });
        }
      }
-
-    // // Validate assigned team members
-    // for (const memberId of assignedTeamMembers) {
-    //   const memberExists = await User.findById(memberId);
-    //   if (!memberExists) {
-    //     return res.status(404).json({ message: `Assigned team member with ID ${memberId} not found` });
-    //   }
-    // }
 
     // Validate tasks
     for (const taskId of tasks) {
@@ -46,17 +45,20 @@ projectController.createProject = async (req, res) => {
       }
     }
 
+
     const project = new Project({
       name,
       description,
       deadline,
-      status: "Planned",
+      status,
       assignedTeamMembers,
       tasks,
       client,
       createdBy: req.user.userId,
     })
+ 
       await project.save();
+      console.log('project status',project.status)
 
      // Update the client's project history
     clientExists.projectHistory.push(project._id);
@@ -118,6 +120,7 @@ projectController.createProject = async (req, res) => {
 
     res.status(201).json(project);
   } catch (error) {
+    console.error('Error occurred while project creation:', error);
     res.status(500).json({ error: error.message });
   }
 };

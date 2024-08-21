@@ -130,21 +130,26 @@ usersController.updateProfile = async (req, res) => {
 
 
 // Function to get users by role
-usersController.getUsersByRole = async (req,res) => {
-  const { roles } = req.query; // Getting roles from query params (e.g., ?roles=Animator,Project Manager)
-  
-  if (!roles) {
-    return res.status(400).json({ message: 'Roles query parameter is required' });
+usersController.getUsersByRole = async (req, res) => {
+  console.log('Full URL:', req.originalUrl);
+  console.log('Query params:', req.query);
+
+  // Ensure roles are provided
+  if (!req.query.roles) {
+      return res.status(400).json({ message: 'Roles query parameter is required' });
   }
 
-  const rolesArray = roles.split(','); 
+  const { roles } = req.query;
+
   try {
-    const users = await User.find({ role: { $in: rolesArray } }, 'name email role');
-    res.json(users)
+      const rolesArray = roles.split(',');
+      const users = await User.find({ role: { $in: rolesArray } }, 'name email role');
+      res.json(users);
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching users by role' });
+      console.error('Error fetching users by role:', error);
+      res.status(500).json({ error: 'Error fetching users by role' });
   }
-};
+}; 
 
 // Get all users (Admin only)
 usersController.getAllUsers = async (req, res) => {

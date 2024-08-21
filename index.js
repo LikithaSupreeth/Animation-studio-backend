@@ -52,14 +52,6 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
-// const authenticateAdmin = (req, res, next) => {
-//   if (req.user && req.user.role === 'Admin') {
-//       next();
-//   } else {
-//       res.status(403).json({ error: 'Access denied' });
-//   }
-// };
-
 //user crud operations
 app.post('/users/register',checkSchema(userRegisterValidationSchema),handleValidation,authenticateAdmin,usersController.register)
 app.post('/users/register-client',checkSchema(clientRegisterValidationSchema),handleValidation,usersController.registerClient)
