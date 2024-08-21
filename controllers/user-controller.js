@@ -79,7 +79,19 @@ usersController.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token });
+    const profile = {
+      role: user.role,
+      name: user.name,
+      email: user.email,
+     
+    };
+    const account = {
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+   
+    };
+    res.json({ token,profile,account});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -116,10 +128,28 @@ usersController.updateProfile = async (req, res) => {
   }
 };
 
+
+// Function to get users by role
+usersController.getUsersByRole = async (req,res) => {
+  const { roles } = req.query; // Getting roles from query params (e.g., ?roles=Animator,Project Manager)
+  
+  if (!roles) {
+    return res.status(400).json({ message: 'Roles query parameter is required' });
+  }
+
+  const rolesArray = roles.split(','); 
+  try {
+    const users = await User.find({ role: { $in: rolesArray } }, 'name email role');
+    res.json(users)
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching users by role' });
+  }
+};
+
 // Get all users (Admin only)
 usersController.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
+    const users = await User.find({}, 'name email role')
     .select('-password')
     .populate('projectHistory')
     .populate({

@@ -4,6 +4,7 @@ const Client = require('../models/client-model')
 const Payment = require('../models/payment-model')
 const Task = require('../models/task-model')
 const {sendProjectCompletionEmail} = require('../utility/nodemailer')
+const {getUsersByRole} = require('./user-controller')
 
 const projectController = {};
 
@@ -17,13 +18,25 @@ projectController.createProject = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
-    // Validate assigned team members
-    for (const memberId of assignedTeamMembers) {
-      const memberExists = await User.findById(memberId);
-      if (!memberExists) {
-        return res.status(404).json({ message: `Assigned team member with ID ${memberId} not found` });
-      }
-    }
+     // Validate assigned team members
+     const validRoles = ['Animator', 'Project Manager'];
+     const validTeamMembers = await getUsersByRole({ roles: validRoles });
+ 
+     const validMemberIds = validTeamMembers.map(user => user._id.toString());
+ 
+     for (const memberId of assignedTeamMembers) {
+       if (!validMemberIds.includes(memberId)) {
+         return res.status(404).json({ message: `Assigned team member with ID ${memberId} is not an Animator or Project Manager` });
+       }
+     }
+
+    // // Validate assigned team members
+    // for (const memberId of assignedTeamMembers) {
+    //   const memberExists = await User.findById(memberId);
+    //   if (!memberExists) {
+    //     return res.status(404).json({ message: `Assigned team member with ID ${memberId} not found` });
+    //   }
+    // }
 
     // Validate tasks
     for (const taskId of tasks) {

@@ -78,7 +78,7 @@ taskController.getTask = async (req, res) => {
 // Get all tasks
 taskController.getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find()
+    const tasks = await Task.find({}, 'name description dueDate status')
    
     .populate('assignedAnimator', 'name email role projectHistory')
     .populate('project', 'name description deadline status assignedTeamMembers tasks client createdBy')

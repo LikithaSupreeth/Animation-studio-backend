@@ -45,6 +45,19 @@ clientController.getClient = async (req, res) => {
   }
 };
 
+//get all clients
+clientController.getAllClients = async (req, res) => {
+  try {
+    const clients = await Client.find({},'name contactInformation')
+    
+    //.populate('client', 'name contactInformation projectHistory')
+    res.json(clients);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Update a client
 clientController.updateClient = async (req, res) => {
   const updates = req.body;

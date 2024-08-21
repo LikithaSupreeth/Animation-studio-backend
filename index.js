@@ -1,9 +1,10 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors")
 const configureDB = require("./config/db");
 const {checkSchema,validationResult} = require('express-validator')
 
-const authenticateUser = require('./middlewares/authenticate-user')
+const {authenticateUser,authenticateAdmin} = require('./middlewares/authenticate-user')
 const authorizeUser = require('./middlewares/authorize-user')
 
 const {userRegisterValidationSchema,userUpdateValidations,clientRegisterValidationSchema} = require('./validations/user-register-validations')
@@ -27,6 +28,13 @@ const app = express();
 const port = process.env.PORT;
 configureDB();
 
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
+
 app.use(express.json());
 
 // application level middleware - using it for logging request for debug purpose
@@ -44,13 +52,22 @@ const handleValidation = (req, res, next) => {
   next();
 };
 
+// const authenticateAdmin = (req, res, next) => {
+//   if (req.user && req.user.role === 'Admin') {
+//       next();
+//   } else {
+//       res.status(403).json({ error: 'Access denied' });
+//   }
+// };
+
 //user crud operations
-app.post('/users/register',checkSchema(userRegisterValidationSchema),handleValidation,usersController.register)
+app.post('/users/register',checkSchema(userRegisterValidationSchema),handleValidation,authenticateAdmin,usersController.register)
 app.post('/users/register-client',checkSchema(clientRegisterValidationSchema),handleValidation,usersController.registerClient)
+app.get('/users/getUserByRole', authenticateUser,authorizeUser(['Admin','Project Manager']), usersController.getUsersByRole);
 app.post('/users/login',checkSchema(userLoginValidationSchema),handleValidation,usersController.login)
 app.get('/users/getuser',authenticateUser,usersController.getProfile)
 app.get('/users/getbyid/:id',authenticateUser,authorizeUser(['Admin']),usersController.getUserById)
-app.get('/users/getallusers',authenticateUser,authorizeUser(['Admin','Project Manager'  ]),usersController.getAllUsers)
+app.get('/users/getallusers',authenticateUser,authorizeUser(['Admin','Project Manager']),usersController.getAllUsers)
 app.put('/users/update',authenticateUser,checkSchema(userUpdateValidations),usersController.updateProfile)
 app.delete('/users/:id', authenticateUser, authorizeUser(['Admin']), usersController.deleteUser);
 
@@ -71,6 +88,7 @@ app.delete('/task/delete/:id', authenticateUser, authorizeUser(['Admin', 'Projec
 
 //client crud operations
 app.get('/client/get-client/:id', authenticateUser,authorizeUser(['Admin', 'Project Manager']), clientController.getClient);
+app.get('/client/getAllClients',authenticateUser,authorizeUser(['Admin','Project Manager','Animator']),handleValidation,clientController.getAllClients)
 app.put('/client/update/:id', authenticateUser, checkSchema(clientValidationSchema), handleValidation, clientController.updateClient);
 app.delete('/client/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), clientController.deleteClient);
 app.post('/client/:id/feedback', authenticateUser, authorizeUser(['Client']), clientController.addFeedback);
