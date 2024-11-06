@@ -34,8 +34,12 @@ clientController.getClient = async (req, res) => {
     //   return res.status(403).json({ message: 'You are not authorized to view this information.' });
     // }
     const client = await Client.findById(req.params.id)
-      .populate('paymentHistory')
-      .populate('projectHistory')
+    .populate({
+      path: 'projectHistory',
+      select: 'name description deadline' 
+    })
+    .populate('paymentHistory')
+     
     if (!client) {
       return res.status(404).json({ message: 'Client not found' });
     }

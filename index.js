@@ -10,7 +10,7 @@ const authorizeUser = require('./middlewares/authorize-user')
 const {userRegisterValidationSchema,userUpdateValidations,clientRegisterValidationSchema} = require('./validations/user-register-validations')
 const userLoginValidationSchema = require('./validations/user-login-validations')
 const projectValidationSchema = require('./validations/project-validations')
-const taskValidationSchema = require('./validations/task-validations')
+const {taskValidationSchema,taskUpdateValidationSchema} = require('./validations/task-validations')
 const fileValidationSchema = require('./validations/file-validation')
 const paymentValidationSchema = require('./validations/payment-validation')
 const clientValidationSchema= require('./validations/client-validations')
@@ -60,6 +60,7 @@ app.post('/users/login',checkSchema(userLoginValidationSchema),handleValidation,
 app.get('/users/getuser',authenticateUser,usersController.getProfile)
 app.get('/users/getbyid/:id',authenticateUser,authorizeUser(['Admin']),usersController.getUserById)
 app.get('/users/getallusers',authenticateUser,authorizeUser(['Admin','Project Manager']),usersController.getAllUsers)
+app.get('/users/animators', authenticateUser, authorizeUser(['Admin', 'Project Manager']), usersController.getAnimators);
 app.put('/users/update',authenticateUser,checkSchema(userUpdateValidations),usersController.updateProfile)
 app.delete('/users/:id', authenticateUser, authorizeUser(['Admin']), usersController.deleteUser);
 
@@ -75,7 +76,8 @@ app.post('/approve-task/:taskId', authenticateUser, authorizeUser(['Project Mana
 app.post('/task/create',authenticateUser,authorizeUser(['Admin','Project Manager']),checkSchema(taskValidationSchema),handleValidation,taskController.createTask)
 app.get('/task/gettaskbyid/:id', authenticateUser,authorizeUser(['Admin', 'Project Manager','Animator']), taskController.getTask);
 app.get('/task/getalltasks',authenticateUser,authorizeUser(['Admin', 'Project Manager','Animator']),taskController.getAllTasks)
-app.put('/task/update/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(taskValidationSchema), handleValidation, taskController.updateTask);
+app.get('/task/gettasksbyproject/:projectId', authenticateUser, authorizeUser(['Admin', 'Project Manager', 'Animator']), taskController.getTasksByProject);
+app.put('/task/update/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(taskUpdateValidationSchema), handleValidation, taskController.updateTask);
 app.delete('/task/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), taskController.deleteTask);
 
 //client crud operations
@@ -97,6 +99,7 @@ app.delete('/file/delete/:id', authenticateUser, authorizeUser(['Admin', 'Projec
 //payment crud operations
 app.post('/payment/create', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(paymentValidationSchema), handleValidation, paymentController.createPaymentRequest);
 app.get('/payment/get/:id', authenticateUser, paymentController.getPayment);
+app.get('/payment/getallpayments', authenticateUser, authorizeUser(['Admin', 'Project Manager']), paymentController.getAllPayments);
 app.put('/payment/update/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), checkSchema(paymentValidationSchema), handleValidation, paymentController.updatePayment);
 app.delete('/payment/delete/:id', authenticateUser, authorizeUser(['Admin', 'Project Manager']), paymentController.deletePayment);
 

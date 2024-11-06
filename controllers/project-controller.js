@@ -26,8 +26,9 @@ projectController.createProject = async (req, res) => {
 
      // Validate assigned team members
      const validRoles = ['Animator', 'Project Manager'];
-
-     const validTeamMembers = await usersController.getUsersByRole({  roles: validRoles.join(',')  })
+     const validTeamMembers = await User.find({ role: { $in: validRoles } }, 'name email role');
+     
+    //  const validTeamMembers = await usersController.getUsersByRole({  roles: validRoles.join(',')  })
       
      const validMemberIds = validTeamMembers.map(user => user._id.toString());
 
@@ -35,7 +36,7 @@ projectController.createProject = async (req, res) => {
        if (!validMemberIds.includes(memberId)) {
          return res.status(404).json({ message: `Assigned team member with ID ${memberId} is not an Animator or Project Manager` });
        }
-     }
+     }  
 
     // Validate tasks
     for (const taskId of tasks) {
@@ -120,7 +121,7 @@ projectController.createProject = async (req, res) => {
 
     res.status(201).json(project);
   } catch (error) {
-    console.error('Error occurred while project creation:', error);
+    console.error('Error occurred while project creation  :', error);
     res.status(500).json({ error: error.message });
   }
 };

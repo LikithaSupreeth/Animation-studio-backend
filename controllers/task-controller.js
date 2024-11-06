@@ -131,19 +131,14 @@ taskController.updateTask = async (req, res) => {
   }
 };
 
-// Delete a task
-// taskController.deleteTask = async (req, res) => {
-//   try {
-//     const task = await Task.findByIdAndDelete(req.params.id);
-//     if (!task) {
-//       return res.status(404).json({ message: 'Task not found' });
-//     }
-//     //res.json(task, {message: 'Task deleted successfully'})
-//     res.json({ message: 'Task deleted successfully' , task  });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
+taskController.getTasksByProject = async (req, res) => {
+  try {
+      const tasks = await Task.find({ project: req.params.projectId }).populate('assignedAnimator');
+      res.json(tasks);
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching tasks for the project' });
+  }
+};
 
 taskController.deleteTask = async (req, res) => {
   try {

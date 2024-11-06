@@ -186,6 +186,16 @@ usersController.getUserById = async (req, res) => {
   }
 };
 
+usersController.getAnimators = async (req, res) => {
+  try {
+      const animators = await User.find({ role: 'Animator' }).select('_id name email');
+      res.status(200).json(animators);
+  } catch (error) {
+      console.error('Error fetching animators:', error);
+      res.status(500).json({ error: 'Failed to fetch animators' });
+  }
+};
+
 // Delete a user (Admin only)
 usersController.deleteUser = async (req, res) => {
   try {

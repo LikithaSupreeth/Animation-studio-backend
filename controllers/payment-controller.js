@@ -233,6 +233,17 @@ paymentController.getPayment = async (req, res) => {
   }
 };
 
+paymentController.getAllPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find()
+    .populate('client', 'name email')
+    .populate('project', 'name');
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Update a payment
 paymentController.updatePayment = async (req, res) => {
   const updates = req.body;
